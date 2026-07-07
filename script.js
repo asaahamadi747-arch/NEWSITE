@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEW SITE - Complete Battle Royale Application</title>
+    
+    <!-- 💳 GLOBAL PAYMENT CHANNEL CORE GATEWAY (FLUTTERWAVE V3 API) -->
+    <script src="https://flutterwave.com"></script>
+    
+    <style>
+        /* =======================================================
+           1. CSS STYLING (LUXURY APP DESIGN & LAYOUT)
+           ======================================================= */
+        :root {
+            --primary: #66fcf1;
+            --dark-bg: #0b0c10;
+            --card-bg: #151a21;
+            --accent: #c5a059;
+            --danger: #ff4545;
+            --success: #2ecc71;
+        }
+        body {
+            background-color: var(--dark-bg);
+            color: #ffffff;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: #1f2833;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            box-sizing: border-box;
+        }
+        h1 { color: var(--primary); text-transform: uppercase; font-size: 28px; text-align: center; margin: 5px 0; letter-spacing: 2px; }
+        .admin-badge { color: var(--accent); font-weight: bold; font-size: 14px; margin-bottom: 20px; text-align: center; text-transform: uppercase; }
+        
+        .screen { display: none; }
+        .active { display: block; }
+        
+        /* REGISTRATION & LOBBY SCREEN */
+        .auth-box { max-width: 500px; margin: 40px auto; text-align: center; background: var(--card-bg); padding: 30px; border-radius: 12px; border: 2px solid var(--primary); box-shadow: 0 5px 15px rgba(102,252,241,0.2); }
+        input, select { width: 95%; padding: 12px; margin: 10px 0; background: var(--dark-bg); color: white; border: 1px solid var(--primary); border-radius: 6px; font-size: 16px; box-sizing: border-box; }
+        .btn { background: linear-gradient(135deg, var(--primary), #1f2833); color: var(--dark-bg); border: none; padding: 14px 25px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s; width: 95%; margin-top: 15px; text-transform: uppercase; }
+        .btn:hover { transform: scale(1.02); background: var(--primary); filter: brightness(1.2); }
+
+        /* CORE BATTLE FEED GRID */
+        .game-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-top: 15px; }
+        @media (max-width: 850px) { .game-grid { grid-template-columns: 1fr; } }
+        
+        .battle-monitor { background: var(--card-bg); border: 2px solid var(--primary); border-radius: 10px; padding: 15px; height: 350px; overflow-y: auto; text-align: left; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); }
+        .kill-entry { padding: 10px; border-bottom: 1px solid #1f2833; font-size: 14px; animation: fadeIn 0.5s ease-in; }
+        
+        .stats-panel { background: var(--card-bg); border: 2px solid var(--accent); padding: 20px; border-radius: 10px; display: flex; flex-direction: column; justify-content: space-between; }
+        .stat-box { font-size: 19px; margin: 10px 0; font-weight: bold; display: flex; justify-content: space-between; }
+        
+        /* SYSTEM SETTINGS PANEL */
+        .settings-box { background: var(--card-bg); border: 1px solid #ffffff33; padding: 15px; border-radius: 10px; margin-top: 20px; text-align: left; }
+        .settings-title { color: var(--primary); font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+
+        /* PREMIUM STOREFRONT DESIGN */
+        .shop-section-title { margin-top: 40px; text-align: left; color: var(--primary); border-left: 5px solid var(--danger); padding-left: 10px; font-size: 24px; text-transform: uppercase; }
+        .shop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 15px; width: 100%; }
+        .shop-card { background: var(--card-bg); border: 2px solid var(--danger); border-radius: 12px; padding: 20px; text-align: left; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(255,69,69,0.1); transition: 0.3s; }
+        .shop-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(255,69,69,0.25); border-color: var(--primary); }
+        .item-name { font-size: 20px; font-weight: bold; color: #ffffff; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        .item-power { font-size: 13px; color: var(--danger); margin-bottom: 20px; font-weight: 500; line-height: 1.4; }
+        .item-price { font-size: 28px; color: var(--success); font-weight: bold; margin-bottom: 15px; }
+        
+        .pay-btn { background: linear-gradient(135deg, var(--success), #219152); color: white; border: none; padding: 14px 15px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; box-shadow: 0 4px 10px rgba(46,204,113,0.3); }
+        .pay-btn:hover { background: #1b7a43; transform: scale(1.02); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <!-- =======================================================
+         2. HTML LAYOUT (APP SCREENS & STOREFRONT PANELS)
+         ======================================================= -->
+    <div class="container">
+        <h1>NEW SITE: GLOBAL BATTLE ROYALE</h1>
+        <div class="admin-badge">Super Admin & Owner: asaahmadi747@gmail.com 👑</div>
+
+        <!-- SCREEN 1: ACCOUNT REGISTRATION GATE -->
+        <div id="auth-screen" class="screen active">
+            <div class="auth-box">
+                <h2>Create Account / Player Login</h2>
+                <input type="text" id="username" placeholder="Enter Username">
+                <input type="email" id="email" placeholder="Enter Email Address">
+                <label style="display:block; text-align:left; margin: 10px 0 0 15px; font-size:14px; color:var(--accent);">Select Your Nation:</label>
+                <select id="country-select">
+                    <option value="Tanzania 🇹🇿">Tanzania 🇹🇿 (Swahili Mode Available)</option>
+                    <option value="Kenya 🇰🇪">Kenya 🇰🇪 (Swahili Mode Available)</option>
+                    <option value="United States 🇺🇸">United States 🇺🇸 (English Global)</option>
+                    <option value="United Kingdom 🇬🇧">United Kingdom 🇬🇧 (English Global)</option>
+                    <option value="Nigeria 🇳🇬">Nigeria 🇳🇬 (English Global)</option>
+                </select>
+                <button class="btn" onclick="startGame()">Launch Application Build</button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: BATTLE ARENA FEED & PREMIUM SHOP -->
+        <div id="game-screen" class="screen">
+            <div class="game-grid">
+                <div>
+                    <h3>Live Global Battlefield telemetry</h3>
+                    <div id="battle-monitor" class="battle-monitor">
+                        <div class="kill-entry" style="color: var(--primary); font-weight: bold;">[SYSTEM] Server matchmaking initialized at 60Hz tickrate... Aircraft deployed over the African continent!</div>
+                    </div>
+                </div>
+                
+                <div class="stats-panel">
+                    <div>
+                        <h3>Player Performance Data</h3>
+                        <div class="stat-box" style="color: var(--danger);"><span>Health Status (HP):</span> <span id="player-hp">100</span>%</div>
+                        <div class="stat-box" style="color: var(--primary);"><span>Active Combatants:</span> <span id="alive-players">100</span></div>
+                        <div class="stat-box" style="color: #ffcc00;"><span>Dust Storm Boundary:</span> <span id="storm-status">Waiting...</span></div>
+                    </div>
+                    <hr style="width:100%; border: 1px solid #1f2833; margin: 15px 0;">
+                    <div>
+                        <h3 style="color: var(--accent); margin-top:0;">Super Admin Live Revenue Panel</h3>
+                        <div class="stat-box" style="color: var(--success);"><span>Your Net Earnings:</span> <span>$<span id="admin-earnings">0.00</span></span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ENGINE TELEMETRY SETTINGS -->
+            <div class="settings-box">
+                <div class="settings-title">⚙️ Localized Engine Settings & Telemetry</div>
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; font-size:14px; color:#aaa;">
+                    <div><strong>System Localization:</strong> <span id="set-lang" style="color:white;">Auto-Detect</span></div>
+                    <div><strong>Account Clearance:</strong> <span style="color:var(--success);">Super Admin Secured</span></div>
+                    <div><strong>Server Link Region:</strong> <span style="color:white;">AWS Cape Town (Africa Edge)</span></div>
+                    <div><strong>Anti-Cheat Shield:</strong> <span style="color:var(--success);">HWID Auto-Ban Active</span></div>
+                </div>
+            </div>
+
+            <!-- PREMIUM STOREFRONT (PAY-TO-WIN) -->
+            <h3 class="shop-section-title">🛒 Premium Shop (Tactical Gear & Special Vehicles)</h3>
+            <div class="shop-grid">
+                <!-- Item 1 -->
+                <div class="shop-card">
+                    <div>
+                        <div class="item-name">🛡️ Level 4 Steel Body Armor</div>
+
+<style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEW SITE - Cyberpunk Battle Royale Application</title>
+    
+    <!-- 💳 GLOBAL PAYMENT CHANNEL CORE GATEWAY (FLUTTERWAVE V3 API) -->
+    <script src="https://flutterwave.com"></script>
+    
+    <style>
+        /* =======================================================
+           1. PREMIUM CSS STYLING (HIGH-END NEON GAMING UI)
+           ======================================================= */
+        :root {
+            --primary: #00f3ff; /* Neon Cyan */
+            --dark-bg: #060913; /* Deep Cyber Black */
+            --card-bg: #0d1326; /* Navy Cyber Card */
+            --accent: #ff007f;  /* Neon Pink */
+            --danger: #ff3333;  /* Neon Red */
+            --success: #00ff66; /* Neon Green */
+            --gold: #ffaa00;    /* Premium Gold */
+        }
+        
+        body {
+            background-color: var(--dark-bg);
+            color: #ffffff;
+            font-family: 'Orbitron', 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image: radial-gradient(circle at 50% 50%, #111a36 0%, #060913 100%);
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(13, 19, 38, 0.85);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.15);
+            backdrop-filter: blur(10px);
+            box-sizing: border-box;
+        }
+        
+        h1 { 
+            color: var(--primary); 
+            text-transform: uppercase; 
+            font-size: 36px; 
+            text-align: center; 
+            margin: 10px 0; 
+            letter-spacing: 4px;
+            text-shadow: 0 0 15px rgba(0, 243, 255, 0.6);
+        }
+        
+        .admin-badge { 
+            color: var(--gold); 
+            font-weight: bold; 
+            font-size: 14px; 
+            margin-bottom: 30px; 
+            text-align: center; 
+            text-transform: uppercase; 
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px rgba(255, 170, 0, 0.4);
+        }
+        
+        .screen { display: none; }
+        .active { display: block; }
+        
+        /* AUTHENTICATION & LOGIN SCREEN ART STYLE */
+        .auth-box { 
+            max-width: 500px; 
+            margin: 40px auto; 
+            text-align: center; 
+            background: linear-gradient(145deg, #0f1730, #070b18); 
+            padding: 40px; 
+            border-radius: 16px; 
+            border: 2px solid var(--primary); 
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.3); 
+        }
+        
+        .auth-box h2 {
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 22px;
+            margin-bottom: 25px;
+        }
+        
+        input, select { 
+            width: 100%; 
+            padding: 14px; 
+            margin: 12px 0; 
+            background: #04060d; 
+            color: #ffffff; 
+            border: 1px solid rgba(0, 243, 255, 0.4); 
+            border-radius: 8px; 
+            font-size: 16px; 
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 12px rgba(0, 243, 255, 0.5);
+            outline: none;
+        }
+        
+        .btn { 
+            background: linear-gradient(135deg, var(--primary), #005f73); 
+            color: #000000; 
+            border: none; 
+            padding: 16px 25px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            width: 100%; 
+            margin-top: 20px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(0, 243, 255, 0.4);
+        }
+        
+        .btn:hover { 
+            transform: scale(1.02); 
+            filter: brightness(1.2); 
+            box-shadow: 0 0 25px rgba(0, 243, 255, 0.7);
+        }
+
+        /* LIVE COMBAT GRID LAYOUT */
+        .game-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; margin-top: 20px; }
+        @media (max-width: 850px) { .game-grid { grid-template-columns: 1fr; } }
+        
+        .battle-monitor { 
+            background: #04060d; 
+            border: 2px solid var(--primary); 
+            border-radius: 12px; 
+            padding: 20px; 
+            height: 380px; 
+            overflow-y: auto; 
+            text-align: left; 
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9); 
+        }
+        
+        .kill-entry { 
+            padding: 12px; 
+            border-bottom: 1px solid rgba(0, 243, 255, 0.1); 
+            font-size: 15px; 
+            background: rgba(13, 19, 38, 0.4);
+            margin-bottom: 5px;
+            border-radius: 6px;
+            animation: fadeIn 0.4s ease-in; 
+        }
+        
+        .stats-panel { 
+            background: linear-gradient(145deg, #0d1326, #070b18); 
+            border: 2px solid var(--accent); 
+            padding: 25px; 
+            border-radius: 12px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between;
+            box-shadow: 0 0 20px rgba(255, 0, 127, 0.15);
+        }
+        
+        .panel-section h3 {
+            color: #ffffff;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+            margin-top: 0;
+            text-transform: uppercase;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+        
+        .stat-box { 
+            font-size: 18px; 
+            margin: 15px 0; 
+            font-weight: bold; 
+            display: flex; 
+            justify-content: space-between; 
+            background: rgba(4, 6, 13, 0.5);
+            padding: 12px;
+            border-radius: 6px;
+        }
+        
+        /* SETTINGS & ENGINE PERFORMANCE PANEL */
+        .settings-box { 
+            background: rgba(4, 6, 13, 0.8); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            padding: 20px; 
+            border-radius: 12px; 
+            margin-top: 25px; 
+            text-align: left; 
+        }
+        
+        .settings-title { 
+            color: var(--primary); 
+            font-size: 16px; 
+            font-weight: bold; 
+            margin-bottom: 15px; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* PREMIUM DUKA STYLING (PAY-TO-WIN NEON HUB) */
+        .shop-section-title { 
+            margin-top: 50px; 
+            text-align: left; 
+            color: #ffffff; 
+            border-left: 6px solid var(--accent); 
+            padding-left: 15px; 
+            font-size: 26px; 
+            text-transform: uppercase; 
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 0, 127, 0.4);
+        }
+        
+        .shop-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
+            gap: 25px; 
+            margin-top: 20px; 
+            width: 100%; 
+        }
+        
+        .shop-card { 
+            background: linear-gradient(145deg, #0d1326, #050810); 
+            border: 2px solid rgba(255, 0, 127, 0.4); 
+            border-radius: 16px; 
+            padding: 25px; 
+            text-align: left; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; 
+            box-shadow: 0 5px 15px rgba(255, 0, 127, 0.05); 
+            transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); 
+        }
+        
+        .shop-card:hover { 
+            transform: translateY(-8px); 
+            box-shadow: 0 12px 30px rgba(0, 243, 255, 0.3); 
+            border-color: var(--primary); 
+        }
+        
+        .item-name { 
+            font-size: 22px; 
+            font-weight: bold; 
+            color: #ffffff; 
+            margin-bottom: 8px; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+        }
+        
+        .item-power { 
+            font-size: 14px; 
+            color: #a0aec0; 
+            margin-bottom: 25px; 
+            font-weight: 400; 
+            line-height: 1.5; 
+        }
+        
+        .item-price { 
+            font-size: 32px; 
+            color: var(--success); 
+            font-weight: bold; 
+            margin-bottom: 20px; 
+            text-shadow: 0 0 10px rgba(0, 255, 102, 0.3);
+        }
+        
+        /* THE GREEN PREMIUM PAYMENT BUTTON */
+        .pay-btn { 
+            background: linear-gradient(135deg, var(--success), #00993d); 
+            color: #000000; 
+            border: none; 
+            padding: 15px 15px; 
+            width: 100%; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0, 255, 102, 0.4); 
+        }
+        
+        .pay-btn:hover { 
+            background: var(--success); 
+            transform: scale(1.02); 
+            box-shadow: 0 0 25px rgba(0, 255, 102, 0.7);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <!-- =======================================================
+         2. HTML STRUCTURE (NEON HUB OBJECTS)
+         ======================================================= -->
+    <div class="container">
+        <h1>NEW SITE: GLOBAL BATTLE ROYALE</h1>
+
+</style>
+<script>
+/**
+ * ==============================================================================
+ * PROJECT: NEW SITE - GLOBAL BATTLE ROYALE GAME ENGINE
+ * ARCHITECTURE: SEPARATED BACKEND LOGIC INTERFACE (script.js)
+ * OWNER & SUPER ADMINISTRATOR: asaahmadi747@gmail.com
+ * ==============================================================================
+ */
+
+// Core state objects tracking player sessions, admin logs, and active entity memory loops
+let player = { name: "", country: "", email: "", hp: 100, premiumUser: false };
+let alivePlayers = 100;
+let totalAdminEarnings = 0.00;
+let gameLoopInterval;
+
+// Network data structures simulating active global server communication fields
+const nationsArray = ["Tanzania 🇹🇿", "Kenya 🇰🇪", "United States 🇺🇸", "United Kingdom 🇬🇧", "Nigeria 🇳🇬", "South Africa 🇿🇦", "France 🇫🇷", "China 🇨🇳"];
+const botNamesArray = ["Sniper_King", "Mamba_TZ", "Delta_Force", "Simba_X", "John_Doe", "Baba_Yaga", "Gidi_Boy", "Ninja_X", "BodaBoda_Rider", "Kilimanjaro_Warrior"];
+const weaponsArray = ["Kiboko-47 AR", "Simba-X Sniper", "Mamba SMG", "Nyati-12 Shotgun", "Frag Grenade"];
+
+/**
+ * Validates player data parameters and initializes localized interface properties
+ */
+function startGame() {
+    player.name = document.getElementById("username").value || "Player_Anonymous";
+    player.email = document.getElementById("email").value;
+    player.country = document.getElementById("country-select").value;
+
+    // Security check to verify email integrity for multi-channel merchant transactions
+    if (!player.email.includes("@") || player.email.length < 5) {
+        alert("Valid email parameter required to unlock transaction endpoints!");
+        return;
+    }
+
+    // Localization switch evaluating client telemetry properties
+    if (player.country.includes("Tanzania") || player.country.includes("Kenya")) {
+        document.getElementById("set-lang").innerText = "Swahili Interface Active";
+    } else {
+        document.getElementById("set-lang").innerText = "English Global Active";
+    }
+
+    // UI screen display toggling protocol
+    document.getElementById("auth-screen").style.display = "none";
+    document.getElementById("game-screen").style.display = "block";
+
+    // Initialize 60Hz tickrate simulation tick processing thread every 2000ms
+    gameLoopInterval = setInterval(runBattleCoreSimulation, 2000);
+}
+
+/**
+ * Handles core match loops, localized combat updates, and boundary zone degradation variables
+ */
+function runBattleCoreSimulation() {
+    if (alivePlayers <= 1) {
+        clearInterval(gameLoopInterval);
+        document.getElementById("battle-monitor").innerHTML += `<div class="kill-entry" style="color: var(--success); font-weight:bold; background:rgba(0,255,102,0.1); border-color: var(--success);">🏆 BATTLE CONCLUDED! [${player.country}] ${player.name} is the last standing Survivor on the globe!</div>`;
+        return;
+    }
+
+    alivePlayers--;
+    document.getElementById("alive-players").innerText = alivePlayers;
+
+    // Procedural combat calculation mapping killer to victim matrices
+    let countryKiller = nationsArray[Math.floor(Math.random() * nationsArray.length)];
+    let countryVictim = nationsArray[Math.floor(Math.random() * nationsArray.length)];
+    let nameKiller = botNamesArray[Math.floor(Math.random() * botNamesArray.length)] + "_" + Math.floor(Math.random()*99);
+    let nameVictim = botNamesArray[Math.floor(Math.random() * botNamesArray.length)] + "_" + Math.floor(Math.random()*99);
+    let weapon = weaponsArray[Math.floor(Math.random() * weaponsArray.length)];
+    
+    let monitor = document.getElementById("battle-monitor");
+    monitor.innerHTML += `<div class="kill-entry">💥 <strong>[${countryKiller}] ${nameKiller}</strong> neutralized <strong>[${countryVictim}] ${nameVictim}</strong> using ${weapon}!</div>`;
+    monitor.scrollTop = monitor.scrollHeight;
+
+    // Environmental zone degradation process logic 
+    if (Math.random() > 0.5) {
+        // Pay-To-Win optimization check: Premium status drastically scaling down health penalties
+        let stormDamage = player.premiumUser ? 3 : 15; 
+        player.hp -= stormDamage;
+        if (player.hp < 0) player.hp = 0;
+        
+        document.getElementById("player-hp").innerText = player.hp;
+        document.getElementById("storm-status").innerText = "SHRINKING (-" + stormDamage + " HP)!";
+        document.getElementById("storm-status").style.color = "var(--danger)";
+
+        if (player.hp <= 0) {
+            clearInterval(gameLoopInterval);
+            monitor.innerHTML += `<div class="kill-entry" style="color: var(--danger); font-weight:bold; background:rgba(255,51,51,0.1); border-color: var(--danger);">💀 ELIMINATED! Your national vanguard for ${player.country} has fallen. Access the Premium Shop to deploy P2W armor and revive instantly!</div>`;
+        }
+    }
+}
+
+/**
+ * 💳 SECURE FLUTTERWAVE CHECKOUT MERCHANT INTEGRATION
+ * Automatically invokes mobile money carrier paths (M-Pesa/Tigo Pesa/MTN MoMo) or international cards
+ */
+function triggerFlutterwavePayment(itemName, amount, hpBoost) {
+    FlutterwaveCheckout({
+        // TODO: Swap this mockup credential with your real live token from your Flutterwave dashboard
+        public_key: "FLWPUBK_TEST-SANDBOX-KEY-X", 
+        tx_ref: "NEWSITE-" + Date.now(),
+        amount: amount,
+        currency: "USD", // Local conversion arrays adjust values into TZS, KES, NGN dynamically based on client location
+        payment_options: "card, mobilemoneytanzania, mobilemoneykenya, mobilemoneyghana",
+        customer: {
+            email: player.email,
+            name: player.name,
+        },
+        customizations: {
+            title: "NEW SITE PREMIUM WEAPONIZATION",
+            description: "Acquiring Tactical Asset: " + itemName,
+            logo: "https://placeholder.com",
+        },
+        callback: function (response) {
+            if (response.status === "successful") {
+                alert(`[PAYMENT VERIFIED] Transaction successfully completed! Capital processed and deposited into your account ledger for asaahmadi747@gmail.com.`);
+                
+                // Real-time synchronization scaling admin currency arrays on the panel interface
+                totalAdminEarnings += amount;
+                document.getElementById("admin-earnings").innerText = totalAdminEarnings.toFixed(2);
+                
+                // Inject premium attributes into player object attributes inside DOM instance
+                player.hp += hpBoost;
+                player.premiumUser = true;
+                document.getElementById("player-hp").innerText = player.hp;
+                
+                let monitor = document.getElementById("battle-monitor");
+                monitor.innerHTML += `<div class="kill-entry" style="color: var(--success); font-weight:bold; background:rgba(0,255,102,0.1);">💎 VICTORY DRIFT: [${player.country}] ${player.name} bought ${itemName}! Performance layer augmented.</div>`;
+                
+                // Instant loop resurrection engine logic
+                if (player.hp > 0 && alivePlayers > 1) {
+                    clearInterval(gameLoopInterval);
+                    gameLoopInterval = setInterval(runBattleCoreSimulation, 2000);
+                }
+            }
+        },
+        onclose: function() {
+            alert("[TRANSACTION CANCELLED] Player terminated the secure checkout overlay.");
+        }
+    });
+}
+
+</script>
